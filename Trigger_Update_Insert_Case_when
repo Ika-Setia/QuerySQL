@@ -1,0 +1,33 @@
+Create Trigger on Sql Server
+ update_insert for itself
+
+
+CREATE TRIGGER T_SAMPLE ON DBO.TEST
+FOR INSERT,UPDATE
+AS   
+   DECLARE @DT1 VARCHAR (50)
+   DECLARE @IDX INT
+   DECLARE @CT DATETIME
+   DECLARE @CP VARCHAR (1)
+   DECLARE @MODAR INT
+ SELECT 
+    @DT1 = B.DATA,
+	  @IDX = B.ID,
+	  @CT = i.CHECKTIME,
+    @CP = i.CHECKTYPE
+
+FROM INSERTED i
+     INNER JOIN TEST2 B ON (i.IDX=B.ID)
+
+BEGIN 
+
+	UPDATE TEST 
+	   set CHECKTYPE =
+	        CASE WHEN (@CP) = 'A' THEN '0'
+	   ELSE '1' END 
+	      WHERE ID = @IDX and CHECKTIME = @CT
+	  
+    UPDATE TEST set UNIK = @DT1
+       where ID = @IDX and CHECKTIME = @CT
+   
+END
