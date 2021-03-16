@@ -1,0 +1,36 @@
+Create Trigger Insert On Sql Server
+
+CREATE TRIGGER [TRIGGER_INSERT] ON DBO.TEST
+FOR INSERT
+AS
+BEGIN
+     SET NOCOUNT ON;
+
+		 DECLARE @A AS VARCHAR (25)
+		 DECLARE @B AS INT
+		 DECLARE @C AS DATETIME
+		 DECLARE @D AS VARCHAR (1)
+		 DECLARE @E AS INT
+		 DECLARE @F AS VARCHAR (5)
+		 DECLARE @G AS VARCHAR (30)
+		 DECLARE @H AS VARCHAR (24)
+		 DECLARE @J AS VARCHAR (20)
+		 DECLARE @K AS SMALLINT
+
+
+	 SELECT @A = B.A, 
+			@B=  i.B,
+			@C = i.C,
+			@D = i.D,
+			@E = i.E, 
+			@F = i.F,
+			@G = i.G,
+			@H = i.H, 
+			@J = i.J,
+			@K = i.K
+	 FROM inserted I
+		  INNER JOIN TEST B ON (I.B = B.B)
+	 insert into LOG_INSERT_DELETE_TEST values (@A,@B,@C,@D,@E,@F,@G,@H,@J,@K,'INSERT')
+
+
+END
