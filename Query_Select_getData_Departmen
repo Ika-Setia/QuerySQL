@@ -1,0 +1,10 @@
+SELECT Dept_name, COUNT (Dept_id) AS total
+ FROM (
+  SELECT DISTINCT date,employee_id,name,Dept_id,dept_name
+    FROM (
+      SELECT TOP 1 WITH TIES *
+      FROM Test.dbo.a
+      ORDER BY row_number() over (partition by employee_id,name ORDER BY time DESC)      
+        ) AS time
+    )t 
+GROUP BY t.Dept_Name
