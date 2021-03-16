@@ -1,0 +1,57 @@
+CREATE PROCEDURE SP_ATTENDANCEEMPLOYEE
+  @date_first DATETIME,
+  @date_last DATETIME
+
+
+ AS
+ BEGIN
+
+  DELETE Temporary
+
+  INSERT INTO Temporary (date,time,employee_id
+    	                  ,Employee_name,dept_id
+    	                  ,Dept_name,title
+                        ,STATUS,USERIDX)
+	SELECT FORMAT(CAST(A.CHECKTIME AS DATE),'yyyy-MM-dd') AS datex,
+			FORMAT (A.CHECKTIME, 'HH:mm') as timex
+			,a.Memoinfo,B.NAME,B.DEFAULTDEPTID
+			,C.department_name,B.TITLE
+			,C.employee_status,B.USERID
+
+	FROM ATTENDANCE.DBO.CHECKINOUT A  
+			    INNER JOIN USERINFO B ON (a.Memoinfo= B.BADGENUMBER)
+		        LEFT JOIN Payroll.dbo.corp_employee C ON (B.BADGENUMBER = C.emp_no)
+	        WHERE C.employee_status = 'ACTIVE' 
+	        AND CAST(A.CHECKTIME AS DATE) between @date_first and @date_last
+	        ORDER BY B.BADGENUMBER ASC 
+
+	  
+	 INSERT INTO TRANSAKSI 
+	            (date,employee_id,employee_name,
+	  	         dept_id,dept_name,title)
+
+    SELECT DISTINCT date,employee_id,employee_name,dept_id,dept_name,title
+        FROM Temporary WHERE not exists 
+            (SELECT employee_id, date FROM TRANSAKSI 
+                WHERE Temporary.date = Transaksi.date
+                AND Temporary.employee_id =transaksi.empolyee_id)
+
+    UPDATE transaksi SET in=inx
+        FROM 
+            (SELECT TOP 1 WITH ties timex AS inx, employee_id, date
+                FROM temporary
+                   ORDER BY row_number() over (partition by employee_id, date ORDER BY timex ASC)
+            ) AS inx
+                WHERE inx.employee_id=transaksi.employee_id
+                and inx.date=Transaksi.date
+	
+   UPDATE transaksi SET out=outx
+        FROM 
+            (SELECT TOP 1 WITH ties timex AS outx, employee_id, date
+                FROM temporary
+                   ORDER BY row_number() over (partition by employee_id, date ORDER BY timex ASC)
+            ) AS inx
+                WHERE outx.employee_id=transaksi.employee_id
+                and out.date=Transaksi.date
+
+END
